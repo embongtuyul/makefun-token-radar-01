@@ -1,35 +1,33 @@
 # Token Radar
 
-A token launch radar: 300 pre-token protocols from DefiLlama's sealed snapshot, ranked by an
-implied value the model derives from each protocol's own figures — TVL, seven-day growth, age with
-no token, and chain reach — with a concrete farm plan for every row.
+A token launch radar: 240 pre-token protocols from DefiLlama's sealed snapshot,
+ranked by an implied value the model derives from the snapshot's own figures.
 
-## Value model (radar-2)
+## The model
 
-```
-implied = round( tvl_usd x 0.30
-               x (1 + clamp(change_7d, -60, 120) / 100 x 0.60)
-               x (0.55 + min(age_days, 1095) / 1095 x 0.45)
-               x (1 + 0.03 x min(chains, 4)) )
-```
+Implied value = locked value × 0.30 × growth × maturity × reach.
 
-No protocol name is special-cased. The board covers all 40 watchlist protocols plus the 260
-strongest pre-token protocols below the $50M floor, by TVL. The 24 largest live-token protocols
-are set aside with their market caps, never mixed into the ranking.
+- **Growth** follows the seven-day move in locked value (clamped to −50…+100%).
+- **Maturity** follows how long the protocol has run with no token (12% per year, up to 4 years).
+- **Reach** follows how many chains the protocol touches (3% per extra chain, up to 10).
 
-## Run
+The board carries every protocol on the snapshot's watchlist plus the 200
+strongest other pre-token protocols by implied value. Protocols whose token
+already trades are set aside, never ranked.
+
+## Run it
 
 ```sh
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts --input ../input/snapshot.json
 ```
 
-`main.ts` (Node 22, standard library only) reads `/input/snapshot.json`, writes
-`/output/board.json`, `/output/data.js`, copies `dashboard/` and `screenshots/`, and writes
-`/output/dossier.json` with the vendored `vendor/makefun-board.ts` library.
+Writes `board.json`, `data.js`, `dashboard/`, `screenshots/` and `dossier.json`
+into the output directory. Two runs on the same snapshot write the same bytes.
 
-## Dashboard
+## Screenshots
 
-`dashboard/` is a static page with no network: a sortable, filterable board (search, category,
-chain, pre-token / live-token tabs), a detail view per protocol with the model's inputs and its
-farm plan, and the formula it runs. Open `dashboard/index.html` with the generated `data.js`
-beside it.
+Rendered from the dashboard itself with headless Chromium:
+
+```sh
+node tools/shoot.mjs out screenshots
+```
